@@ -9,7 +9,7 @@ function App() {
 
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name: name() }));
+    console.log(await invoke("get_user_dirs"));
   }
 
   return (
