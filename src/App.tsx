@@ -2,18 +2,14 @@ import { Show, createSignal, onMount, For, createEffect } from "solid-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import { createHistory } from "solid-signals";
 import { Entry } from "./types";
+import UserDirs from "./UserDirs";
+import ListView from "./ListView";
 
-const userDirsList = [
-  "Home",
-  "Documents",
-  "Downloads",
-  "Music",
-  "Pictures",
-  "Videos",
-]
 
 function App() {
-  const [path, setPath] = createHistory("");
+  const [path, setPath] = createHistory("", {
+    equals: (prev, next)=> prev === next
+  });
   const [userDirs, setUserDirs] = createSignal<{ [key: string]: string }>();
   const [items, setItems] = createSignal<Entry[]>([]);
 
@@ -49,26 +45,9 @@ function App() {
         }}>
           <input name='path' value={path()} type='text' />
         </form>
-
       </div>
-      <section>
-        <ul class="user-dirs">
-          <For each={userDirsList} >
-            {(item) => <li onClick={() => setPath(userDirs()![item])}>
-              {item}
-            </li>}
-          </For>
-        </ul>
-      </section>
-      <Show when={items().length > 0}>
-        <ul class='items'>
-          <For each={items()} >
-            {(item) => <li onClick={() => item.is_dir && setPath(item.path)}>
-              {item.name}
-            </li>}
-          </For>
-        </ul>
-      </Show>
+    <UserDirs setPath={setPath} userDirs={userDirs} />
+    <ListView items={items} setPath={setPath}  />
     </div >
   );
 }
