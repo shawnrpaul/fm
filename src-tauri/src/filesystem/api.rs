@@ -1,16 +1,16 @@
-use crate::filesystem::objects::{Directory, EntryType, File};
+use crate::filesystem::objects::Entry;
 use directories_next::UserDirs;
-use std::fs;
+use std::{fs, os::windows::fs::MetadataExt};
 
 #[tauri::command]
-pub fn get_user_dirs() -> Result<Vec<Directory>, String> {
+pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
     if let Some(user_dirs) = UserDirs::new() {
-        let mut directories: Vec<Directory> = Vec::new();
+        let mut directories: Vec<Entry> = Vec::new();
 
         let home_dir = user_dirs.home_dir();
         let mut name = home_dir.file_name().unwrap().to_str().unwrap().to_string();
         let mut path = home_dir.canonicalize().unwrap();
-        directories.push(Directory::new(name, path));
+        directories.push(Entry::new(name, path, true, 0));
 
         let user_dir_paths = vec![
             user_dirs.audio_dir(),
@@ -28,7 +28,7 @@ pub fn get_user_dirs() -> Result<Vec<Directory>, String> {
             if let Some(user_dir) = user_dir_path {
                 name = user_dir.file_name().unwrap().to_str().unwrap().to_string();
                 path = user_dir.canonicalize().unwrap();
-                directories.push(Directory::new(name, path))
+                directories.push(Entry::new(name, path, true, 0));
             }
         }
         return Ok(directories);
@@ -37,10 +37,10 @@ pub fn get_user_dirs() -> Result<Vec<Directory>, String> {
 }
 
 #[tauri::command]
-pub fn get_dir_content(path: String) -> Result<Vec<EntryType>, String> {
+pub fn get_dir_content(path: String) -> Result<Vec<Entry>, String> {
     match fs::read_dir(path) {
         Ok(dir_iter) => {
-            let mut entries: Vec<EntryType> = Vec::new();
+            let mut entries: Vec<Entry> = Vec::new();
             let iter = dir_iter
                 .filter(|entry| entry.is_ok())
                 .map(|entry| entry.unwrap());
@@ -49,12 +49,9 @@ pub fn get_dir_content(path: String) -> Result<Vec<EntryType>, String> {
                 let name = dir_entry.file_name().into_string().unwrap();
                 let path = dir_entry.path().canonicalize().unwrap();
                 let entry_info = dir_entry.metadata().unwrap();
-                if entry_info.is_dir() {
-                    entries.push(EntryType::Dir(Directory::new(name, path)))
-                } else {
-                    let size = entry_info.len();
-                    entries.push(EntryType::File(File::new(name, path, size)))
-                }
+                let is_dir = entry_info.is_dir();
+                let size = if is_dir { 0 } else { entry_info.file_size() };
+                entries.push(Entry::new(name, path, is_dir, size));
             }
 
             Ok(entries)

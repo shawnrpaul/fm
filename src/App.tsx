@@ -1,7 +1,7 @@
 import { createSignal } from "solid-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
-import { Directory } from "./types";
+import { Entry } from "./types";
 
 function App() {
   const [path, setPath] = createSignal("");
@@ -11,7 +11,7 @@ function App() {
   }
 
   async function get_user_dirs() {
-    let user_dirs = await invoke<Directory[]>("get_user_dirs");
+    let user_dirs = await invoke<Entry[]>("get_user_dirs");
     console.log(user_dirs);
     console.log(await invoke("get_dir_content", { path: user_dirs[0].path }));
   }

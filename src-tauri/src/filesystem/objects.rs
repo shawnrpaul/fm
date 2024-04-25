@@ -2,39 +2,20 @@ use serde::Serialize;
 use std::path::PathBuf;
 
 #[derive(Serialize)]
-pub struct Directory {
+pub struct Entry {
     name: String,
     path: PathBuf,
-}
-
-impl Directory {
-    pub fn new(name: String, path: PathBuf) -> Self {
-        Self {
-            name: name,
-            path: path,
-        }
-    }
-}
-
-#[derive(Serialize)]
-pub struct File {
-    name: String,
-    path: PathBuf,
+    is_dir: bool,
     size: u64,
 }
 
-impl File {
-    pub fn new(name: String, path: PathBuf, size: u64) -> Self {
+impl Entry {
+    pub fn new(name: String, path: PathBuf, is_dir: bool, size: u64) -> Self {
         Self {
             name: name,
             path: path,
+            is_dir: is_dir,
             size: size,
         }
     }
-}
-
-#[derive(Serialize)]
-pub enum EntryType {
-    Dir(Directory),
-    File(File),
 }
