@@ -10,7 +10,7 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
         let home_dir = user_dirs.home_dir();
         let mut name = home_dir.file_name().unwrap().to_str().unwrap().to_string();
         let mut path = home_dir.canonicalize().unwrap();
-        directories.push(Entry::new(name, path, true, 0));
+        directories.push(Entry::new("Home".to_string(), path, true, 0));
 
         let user_dir_paths = vec![
             user_dirs.audio_dir(),

@@ -3,6 +3,15 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { createHistory } from "solid-signals";
 import { Entry } from "./types";
 
+const userDirsList = [
+  "Home",
+  "Documents",
+  "Downloads",
+  "Music",
+  "Pictures",
+  "Videos",
+]
+
 function App() {
   const [path, setPath] = createHistory("");
   const [userDirs, setUserDirs] = createSignal<{ [key: string]: string }>();
@@ -10,15 +19,16 @@ function App() {
 
   onMount(async () => {
     const dirs: Entry[] = await invoke("get_user_dirs")
-    console.log(dirs)
     setUserDirs(Object.fromEntries(dirs.map(a => [a.name, a.path])))
+    console.log(userDirs())
     setPath.history([dirs[0].path])
   })
 
   createEffect(async () => {
-    const items: any[] = await invoke("get_dir_content", { path: path() })
-    console.log(items)
-    setItems(items)
+    if (path() !== "") {
+      const items: any[] = await invoke("get_dir_content", { path: path() })
+      setItems(items)
+    }
   })
 
   return (
@@ -41,6 +51,15 @@ function App() {
         </form>
 
       </div>
+      <section>
+        <ul class="user-dirs">
+          <For each={userDirsList} >
+            {(item) => <li onClick={() => setPath(userDirs()![item])}>
+              {item}
+            </li>}
+          </For>
+        </ul>
+      </section>
       <Show when={items().length > 0}>
         <ul class='items'>
           <For each={items()} >
@@ -50,7 +69,7 @@ function App() {
           </For>
         </ul>
       </Show>
-    </div>
+    </div >
   );
 }
 
