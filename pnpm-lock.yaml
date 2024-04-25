@@ -11,6 +11,9 @@ dependencies:
   solid-js:
     specifier: ^1.7.8
     version: 1.8.17
+  solid-signals:
+    specifier: ^1.9.1
+    version: 1.9.1(solid-js@1.8.17)
 
 devDependencies:
   '@tauri-apps/cli':
@@ -1035,6 +1038,14 @@ packages:
       '@babel/types': 7.24.0
       solid-js: 1.8.17
     dev: true
+
+  /solid-signals@1.9.1(solid-js@1.8.17):
+    resolution: {integrity: sha512-amKULgMZ/Ed7A2rdCM4dVQYmyjvrFcKujdCGddu7w4jtCEf758q/k5xdc6IFYIYrt869gpUwRBOlHLBTDoQbVg==}
+    peerDependencies:
+      solid-js: '*'
+    dependencies:
+      solid-js: 1.8.17
+    dev: false
 
   /source-map-js@1.2.0:
     resolution: {integrity: sha512-itJW8lvSA0TXEphiRoawsCksnlf8SyvmFzIhltqAHluXd88pkCd+cXJVHTDwdCr0IzwptSm035IHQktUu1QUMg==}
