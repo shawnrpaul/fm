@@ -1,6 +1,6 @@
 use crate::filesystem::objects::Entry;
 use directories_next::UserDirs;
-use std::{fs, os::windows::fs::MetadataExt};
+use std::fs;
 
 #[tauri::command]
 pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
@@ -50,7 +50,7 @@ pub fn get_dir_content(path: String) -> Result<Vec<Entry>, String> {
                 let path = dir_entry.path().canonicalize().unwrap();
                 let entry_info = dir_entry.metadata().unwrap();
                 let is_dir = entry_info.is_dir();
-                let size = if is_dir { 0 } else { entry_info.file_size() };
+                let size = if is_dir { 0 } else { entry_info.len() };
                 entries.push(Entry::new(name, path, is_dir, size));
             }
 
