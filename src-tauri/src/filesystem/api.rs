@@ -1,4 +1,4 @@
-use crate::filesystem::objects::Entry;
+use crate::filesystem::{objects::Entry, utils};
 use directories_next::UserDirs;
 use std::fs;
 
@@ -7,9 +7,10 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
     if let Some(user_dirs) = UserDirs::new() {
         let mut directories: Vec<Entry> = Vec::new();
 
+        // add the home path first
         let home_dir = user_dirs.home_dir();
         let path = home_dir.canonicalize().unwrap();
-        directories.push(Entry::new("Home".to_string(), path, true, 0));
+        directories.push(Entry::new("Home".to_string(), path, true, 0, String::new()));
 
         let user_dir_paths = vec![
             user_dirs.audio_dir(),
@@ -23,11 +24,12 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
             user_dirs.video_dir(),
         ];
 
+        // add the remaining user dirs if exists
         for user_dir_path in user_dir_paths {
             if let Some(user_dir) = user_dir_path {
                 let name = user_dir.file_name().unwrap().to_str().unwrap().to_string();
                 let path = user_dir.canonicalize().unwrap();
-                directories.push(Entry::new(name, path, true, 0));
+                directories.push(Entry::new(name, path, true, 0, String::new()));
             }
         }
         return Ok(directories);
@@ -40,6 +42,9 @@ pub fn get_dir_content(path: String) -> Result<Vec<Entry>, String> {
     match fs::read_dir(path) {
         Ok(dir_iter) => {
             let mut entries: Vec<Entry> = Vec::new();
+
+            // filter out the entries that could be found
+            // then unwrap the DirEntry objects
             let iter = dir_iter
                 .filter(|entry| entry.is_ok())
                 .map(|entry| entry.unwrap());
@@ -50,7 +55,8 @@ pub fn get_dir_content(path: String) -> Result<Vec<Entry>, String> {
                 let entry_info = dir_entry.metadata().unwrap();
                 let is_dir = entry_info.is_dir();
                 let size = if is_dir { 0 } else { entry_info.len() };
-                entries.push(Entry::new(name, path, is_dir, size));
+                let mime_type = utils::get_mime_type(&path);
+                entries.push(Entry::new(name, path, is_dir, size, mime_type));
             }
 
             Ok(entries)

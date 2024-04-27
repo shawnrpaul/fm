@@ -2,5 +2,6 @@ export interface Entry {
     name: string
     path: string
     is_dir: boolean,
-    size: bigint
+    size: bigint,
+    mime_type: string
 }

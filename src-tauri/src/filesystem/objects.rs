@@ -7,15 +7,17 @@ pub struct Entry {
     path: PathBuf,
     is_dir: bool,
     size: u64,
+    mime_type: String,
 }
 
 impl Entry {
-    pub fn new(name: String, path: PathBuf, is_dir: bool, size: u64) -> Self {
+    pub fn new(name: String, path: PathBuf, is_dir: bool, size: u64, mime_type: String) -> Self {
         Self {
             name,
             path,
             is_dir,
             size,
+            mime_type,
         }
     }
 }
