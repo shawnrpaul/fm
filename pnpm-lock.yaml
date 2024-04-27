@@ -8,9 +8,15 @@ dependencies:
   '@tauri-apps/api':
     specifier: ^1
     version: 1.5.4
+  open-props:
+    specifier: ^1.7.3
+    version: 1.7.3
   solid-js:
     specifier: ^1.7.8
     version: 1.8.17
+  solid-signals:
+    specifier: ^1.9.1
+    version: 1.9.1(solid-js@1.8.17)
 
 devDependencies:
   '@tauri-apps/cli':
@@ -962,6 +968,10 @@ packages:
     resolution: {integrity: sha512-y10wOWt8yZpqXmOgRo77WaHEmhYQYGNA6y421PKsKYWEK8aW+cqAphborZDhqfyKrbZEN92CN1X2KbafY2s7Yw==}
     dev: true
 
+  /open-props@1.7.3:
+    resolution: {integrity: sha512-AzTMcnpVEM06oUUhcJmM5Ip0V7S/lSNBKKGz9R6Q8W3wRuJcgEQgXNl4l1K8/STyKWgs9F/2a2dQzq9RTUfMWg==}
+    dev: false
+
   /picocolors@1.0.0:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
     dev: true
@@ -1035,6 +1045,14 @@ packages:
       '@babel/types': 7.24.0
       solid-js: 1.8.17
     dev: true
+
+  /solid-signals@1.9.1(solid-js@1.8.17):
+    resolution: {integrity: sha512-amKULgMZ/Ed7A2rdCM4dVQYmyjvrFcKujdCGddu7w4jtCEf758q/k5xdc6IFYIYrt869gpUwRBOlHLBTDoQbVg==}
+    peerDependencies:
+      solid-js: '*'
+    dependencies:
+      solid-js: 1.8.17
+    dev: false
 
   /source-map-js@1.2.0:
     resolution: {integrity: sha512-itJW8lvSA0TXEphiRoawsCksnlf8SyvmFzIhltqAHluXd88pkCd+cXJVHTDwdCr0IzwptSm035IHQktUu1QUMg==}

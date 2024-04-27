@@ -1,52 +1,55 @@
-import { createSignal } from "solid-js";
+import { Show, createSignal, onMount, For, createEffect } from "solid-js";
 import { invoke } from "@tauri-apps/api/tauri";
-import "./App.css";
+import { createHistory } from "solid-signals";
 import { Entry } from "./types";
+import UserDirs from "./UserDirs";
+import ListView from "./ListView";
+
 
 function App() {
-  const [path, setPath] = createSignal("");
+  const [path, setPath] = createHistory("", {
+    equals: (prev, next)=> prev === next
+  });
+  const [userDirs, setUserDirs] = createSignal<{ [key: string]: string }>();
+  const [items, setItems] = createSignal<Entry[]>([]);
 
-  async function get_dir_content() {
-    console.log(await invoke("get_dir_content", { path: path() }));
-  }
+  onMount(async () => {
+    const dirs: Entry[] = await invoke("get_user_dirs")
+    setUserDirs(Object.fromEntries(dirs.map(a => [a.name, a.path])))
+    console.log(userDirs())
+    setPath.history([dirs[0].path])
+  })
 
-  async function get_user_dirs() {
-    let user_dirs = await invoke<Entry[]>("get_user_dirs");
-    console.log(user_dirs);
-    console.log(await invoke("get_dir_content", { path: user_dirs[0].path }));
-  }
+  createEffect(async () => {
+    if (path() !== "") {
+      const items: any[] = await invoke("get_dir_content", { path: path() })
+      setItems(items)
+    }
+  })
 
   return (
     <div class="container">
-      <h1>Welcome to FM!</h1>
-
-      <form
-        class="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          get_dir_content();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setPath(e.currentTarget.value)}
-          placeholder="Enter a path..."
-        />
-        <button type="submit">Get Directory Content</button>
-      </form>
-
-      <form
-        class="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          get_user_dirs();
-        }}
-      >
-        <button type="submit">Get User Directories</button>
-      </form>
-
-    </div>
+      <div class='header'>
+        <button prop:disabled={path.history().length === 1} onClick={() => setPath.history.back()}>
+          {/* <ArrowLeft size={24} /> */}
+          Back
+        </button>
+        <button onClick={() => setPath.history.forward()}>
+          {/* <ArrowRight size={24} /> */}
+          Forward
+        </button>
+        <form onSubmit={(e) => {
+          e.preventDefault()
+          const data = new FormData(e.target as HTMLFormElement)
+          setPath(data.get('path') as string)
+        }}>
+          <input name='path' value={path()} type='text' />
+        </form>
+      </div>
+    <UserDirs setPath={setPath} userDirs={userDirs} />
+    <ListView items={items} setPath={setPath}  />
+    </div >
   );
 }
 
-export default App;
+export default App

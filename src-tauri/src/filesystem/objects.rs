@@ -12,10 +12,10 @@ pub struct Entry {
 impl Entry {
     pub fn new(name: String, path: PathBuf, is_dir: bool, size: u64) -> Self {
         Self {
-            name: name,
-            path: path,
-            is_dir: is_dir,
-            size: size,
+            name,
+            path,
+            is_dir,
+            size,
         }
     }
 }
