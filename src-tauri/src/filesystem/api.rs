@@ -8,8 +8,7 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
         let mut directories: Vec<Entry> = Vec::new();
 
         let home_dir = user_dirs.home_dir();
-        let mut name = home_dir.file_name().unwrap().to_str().unwrap().to_string();
-        let mut path = home_dir.canonicalize().unwrap();
+        let path = home_dir.canonicalize().unwrap();
         directories.push(Entry::new("Home".to_string(), path, true, 0));
 
         let user_dir_paths = vec![
@@ -26,8 +25,8 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
 
         for user_dir_path in user_dir_paths {
             if let Some(user_dir) = user_dir_path {
-                name = user_dir.file_name().unwrap().to_str().unwrap().to_string();
-                path = user_dir.canonicalize().unwrap();
+                let name = user_dir.file_name().unwrap().to_str().unwrap().to_string();
+                let path = user_dir.canonicalize().unwrap();
                 directories.push(Entry::new(name, path, true, 0));
             }
         }
