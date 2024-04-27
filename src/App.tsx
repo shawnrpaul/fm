@@ -30,11 +30,11 @@ function App() {
   return (
     <div class="container">
       <div class='header'>
-        <button disabled={path.history().length === 0} onClick={() => setPath.history.back()}>
+        <button prop:disabled={path.history().length === 1} onClick={() => setPath.history.back()}>
           {/* <ArrowLeft size={24} /> */}
           Back
         </button>
-        <button disabled={path.history().length === 0} onClick={() => setPath.history.forward()}>
+        <button onClick={() => setPath.history.forward()}>
           {/* <ArrowRight size={24} /> */}
           Forward
         </button>
