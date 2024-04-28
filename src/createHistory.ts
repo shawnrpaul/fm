@@ -33,13 +33,11 @@ export function createHistory<T>(initialValue: T): [Accessor<T>, (value: T) => v
   }
 
   function forward() {
-    console.log(index(), arr, signal())
     const indexCur = index();
     if (arr.length - 1 > indexCur) {
       setIndex(indexCur + 1)
       const value = arr.at(indexCur + 1)!;
       setSignal(value);
-      console.log(index(), arr, signal())
     }
   }
 

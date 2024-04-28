@@ -17,7 +17,6 @@ export default function UserDirs(props: { path: Accessor<string>; userDirs: Acce
       <For each={userDirsList} >
         {([name, icon]) => {
           const path = props.userDirs()![name];
-          console.log(userDirsList, props.userDirs())
           return <li classList={{ selected: isSelected(path) }} onClick={() => {
             return props.setPath(path);
           }}>
