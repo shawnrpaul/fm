@@ -4,7 +4,7 @@ import { createHistory } from "./createHistory";
 import { Entry } from "./types";
 import UserDirs from "./UserDirs";
 import ListView from "./ListView";
-import { ArrowLeft, ArrowRight } from "lucide-solid";
+import Header from "./Header";
 
 
 function App() {
@@ -26,26 +26,10 @@ function App() {
 
   return (
     <div class="container">
-      <div class='header'>
-        <button prop:disabled={!pathObj.canGoBack()} onClick={() => pathObj.back()}>
-          <ArrowLeft size={24} />
-        </button>
-        <button prop:disabled={!pathObj.canGoForward()} onClick={() => pathObj.forward()}>
-          <ArrowRight size={24} />
-        </button>
-        <form onSubmit={(e) => {
-          e.preventDefault()
-          const data = new FormData(e.target as HTMLFormElement)
-          setPath(data.get('path') as string)
-        }}>
-          <input name='path' value={path()} type='text' />
-        </form>
-      </div>
-
+      <Header path={path} setPath={setPath} pathObj={pathObj} />
       <Show when={Object.hasOwn(userDirs(), "Home")} >
         <UserDirs path={path} setPath={setPath} userDirs={userDirs} />
       </Show  >
-      <ListView items={items} setPath={setPath} />
     </div >
   );
 }

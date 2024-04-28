@@ -1,12 +1,14 @@
 import { Accessor, createMemo, createSignal } from 'solid-js'
 
-export function createHistory<T>(initialValue: T): [Accessor<T>, (value: T) => void, {
+export interface PathObj {
   back: () => void,
   forward: () => void,
   clear: () => void,
   canGoBack: () => boolean,
   canGoForward: () => boolean,
-}] {
+}
+
+export function createHistory<T>(initialValue: T): [Accessor<T>, (value: T) => void, PathObj] {
   const [signal, setSignal] = createSignal<T>(initialValue);
   const [index, setIndex] = createSignal(0);
   const arr: T[] = [initialValue]
