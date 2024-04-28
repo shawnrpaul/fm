@@ -8,6 +8,9 @@ dependencies:
   '@tauri-apps/api':
     specifier: ^1
     version: 1.5.4
+  lucide-solid:
+    specifier: ^0.376.0
+    version: 0.376.0(solid-js@1.8.17)
   open-props:
     specifier: ^1.7.3
     version: 1.7.3
@@ -946,6 +949,14 @@ packages:
     dependencies:
       yallist: 3.1.1
     dev: true
+
+  /lucide-solid@0.376.0(solid-js@1.8.17):
+    resolution: {integrity: sha512-xqqpDz62/WdXKIXoRAhD7JIvj5ZpExOcAH5IEqG3QclwXRtgNz/I3wnrBlgljVEDViea5ASaT0pTlTUYyc++og==}
+    peerDependencies:
+      solid-js: ^1.4.7
+    dependencies:
+      solid-js: 1.8.17
+    dev: false
 
   /merge-anything@5.1.7:
     resolution: {integrity: sha512-eRtbOb1N5iyH0tkQDAoQ4Ipsp/5qSR79Dzrz8hEPxRX10RWWR/iQXdoKmBSRCThY1Fh5EhISDtpSc93fpxUniQ==}

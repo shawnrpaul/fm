@@ -23,9 +23,19 @@ body {
   grid-column: 2;
   display: flex;
   justify-self: center;
-  gap: 0.5rem;
+  gap: var(--size-2);
   align-items: center;
   padding: 0.5rem;
+
+  button {
+    padding: var(--size-2);
+    line-height: 1;
+  }
+}
+
+.user-dirs li {
+  display: flex;
+  gap: var(--size-1)
 }
 
 .list-view-list,
@@ -40,4 +50,9 @@ body {
 .list-view {
   background-color: var(--surface-1);
   overflow-y: scroll;
+}
+
+.list-view-list li {
+  display: flex;
+  gap: var(--size-2);
 }
