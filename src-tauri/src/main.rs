@@ -10,7 +10,9 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             api::get_user_dirs,
-            api::get_dir_content
+            api::get_dir_content,
+            api::open_file,
+            api::open_file_with
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
