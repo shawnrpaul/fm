@@ -1,5 +1,6 @@
 use crate::filesystem::{objects::Entry, utils};
 use directories_next::UserDirs;
+use open;
 use std::fs;
 
 #[tauri::command]
@@ -61,6 +62,22 @@ pub fn get_dir_content(path: String) -> Result<Vec<Entry>, String> {
 
             Ok(entries)
         }
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn open_file(path: String) -> Result<(), String> {
+    match open::that(path) {
+        Ok(()) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn open_file_with(path: String, app: String) -> Result<(), String> {
+    match open::with(path, app) {
+        Ok(()) => Ok(()),
         Err(e) => Err(e.to_string()),
     }
 }
