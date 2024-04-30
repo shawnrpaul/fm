@@ -17,10 +17,15 @@ export default function ListView(props: Props) {
     else if (item.mime_type.startsWith("video")) return <FileVideo />
     return <File />
   }
+  const collator = new Intl.Collator('en');
   return <section class='list-view'>
     <Show when={!props.items.loading}>
       <ul class='list-view-list'>
-        <For each={props.items()!.filter(a => !a.name.startsWith('.') || props.settings.showHidden)} >
+        <For each={
+          props.items()!
+            .filter(a => !a.name.startsWith('.') || props.settings.showHidden)
+            .sort((a, b) => collator.compare(a.name, b.name))
+        } >
           {(item) => <li onClick={() => {
             if (item.is_dir) { props.setPath(item.path); }
             else invoke("open_file", { path: item.path })
