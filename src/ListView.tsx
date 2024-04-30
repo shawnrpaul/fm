@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api";
 
 interface Props {
   items: Resource<Entry[]>;
+  settings: { showHidden: boolean }
   setPath: (arg0: string) => void;
 }
 
@@ -19,7 +20,7 @@ export default function ListView(props: Props) {
   return <section class='list-view'>
     <Show when={!props.items.loading}>
       <ul class='list-view-list'>
-        <For each={props.items()} >
+        <For each={props.items()!.filter(a => !a.name.startsWith('.') || props.settings.showHidden)} >
           {(item) => <li onClick={() => {
             if (item.is_dir) { props.setPath(item.path); }
             else invoke("open_file", { path: item.path })

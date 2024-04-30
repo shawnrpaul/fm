@@ -1,9 +1,10 @@
 import { createSignal, onMount, createResource, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import { createHistory } from "./createHistory";
-import { Entry } from "./types";
+import { AppSettings, Entry } from "./types";
 import UserDirs from "./UserDirs";
 import ListView from "./ListView";
+import { createStore } from "solid-js/store";
 import Header from "./Header";
 
 
@@ -16,6 +17,10 @@ function App() {
     }
     return []
   })
+  const [settings, setSettings] = createStore<AppSettings>({
+    showHidden: false,
+    theme: "default"
+  })
 
   onMount(async () => {
     const dirs: Entry[] = await invoke("get_user_dirs")
@@ -26,10 +31,11 @@ function App() {
 
   return (
     <div class="container">
-      <Header path={path} setPath={setPath} pathObj={pathObj} />
+      <Header path={path} setPath={setPath} pathObj={pathObj} settings={settings} setSettings={setSettings}/>
       <Show when={Object.hasOwn(userDirs(), "Home")} >
         <UserDirs path={path} setPath={setPath} userDirs={userDirs} />
       </Show  >
+      <ListView items={items} settings={settings} setPath={setPath} />
     </div >
   );
 }

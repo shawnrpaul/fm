@@ -6,6 +6,7 @@
 /* optional imports that use the props */
 @import "open-props/normalize";
 @import "open-props/buttons";
+@import "./DropdownMenu.css";
 
 body {
   background-color: var(--surface-2);
@@ -22,15 +23,21 @@ body {
 .header {
   grid-column: 2;
   display: flex;
-  justify-self: center;
   gap: var(--size-2);
   align-items: center;
   padding: 0.5rem;
+  justify-content: space-between;
 
-  button {
-    padding: var(--size-2);
-    line-height: 1;
+  .header-left {
+    display: flex;
+    gap: var(--size-2);
+
+    button {
+      padding: var(--size-2);
+      line-height: 1;
+    }
   }
+
 }
 
 .user-dirs {
