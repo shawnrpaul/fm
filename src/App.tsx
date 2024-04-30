@@ -17,6 +17,7 @@ function App() {
     }
     return []
   })
+
   const [settings, setSettings] = createStore<AppSettings>({
     showHidden: false,
     theme: "default"
@@ -27,6 +28,19 @@ function App() {
     setUserDirs(Object.fromEntries(dirs.map(a => [a.name, a.path])))
     pathObj.clear();
     setPath(userDirs()!["Home"]!)
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey) {
+
+        if (e.key === 'h') {
+          setSettings('showHidden', (a) => !a)
+        } else if (e.key === 'ArrowLeft') {
+          pathObj.back()
+        } else if (e.key === 'ArrowRight') {
+          pathObj.forward()
+        }
+      }
+    })
   })
 
   return (
