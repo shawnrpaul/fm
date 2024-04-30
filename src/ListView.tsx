@@ -26,7 +26,7 @@ export default function ListView(props: Props) {
             .filter(a => !a.name.startsWith('.') || props.settings.showHidden)
             .sort((a, b) => collator.compare(a.name, b.name))
         } >
-          {(item) => <li onClick={() => {
+          {(item) => <li tabindex='0' onClick={() => {
             if (item.is_dir) { props.setPath(item.path); }
             else invoke("open_file", { path: item.path })
           }}>

@@ -41,13 +41,6 @@ body {
 }
 
 .user-dirs {
-  li {
-    display: flex;
-    gap: var(--size-1);
-    height: var(--size-7);
-    border-radius: var(--radius-1)
-  }
-
   .selected {
     background-color: var(--surface-3)
   }
@@ -59,7 +52,22 @@ body {
   padding: var(--size-1) var(--size-2);
   display: flex;
   flex-direction: column;
-  gap: var(--size-1)
+  gap: var(--size-1);
+
+  li {
+    display: grid;
+    grid-template-columns: var(--size-6) 1fr;
+    gap: var(--size-2);
+    border-radius: var(--radius-1);
+    align-items: center;
+    height: var(--size-7);
+
+    span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
 }
 
 .list-view {
@@ -67,7 +75,6 @@ body {
   overflow-y: scroll;
 }
 
-.list-view-list li {
-  display: flex;
-  gap: var(--size-2);
+.container *:not(:active):focus-visible {
+  outline-offset: 1px;
 }

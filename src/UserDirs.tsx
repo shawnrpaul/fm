@@ -23,7 +23,7 @@ export default function UserDirs(props: Props) {
       <For each={userDirsList} >
         {([name, icon]) => {
           const path = props.userDirs()![name];
-          return <li classList={{ selected: isSelected(path) }} onClick={() => {
+          return <li tabindex='0' classList={{ selected: isSelected(path) }} onClick={() => {
             return props.setPath(path);
           }}>
             {icon} {name}
