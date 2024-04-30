@@ -12,6 +12,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@kobalte/core": "^0.12.6",
     "@tauri-apps/api": "^1",
     "lucide-solid": "^0.376.0",
     "open-props": "^1.7.3",
