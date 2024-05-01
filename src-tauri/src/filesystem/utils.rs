@@ -12,3 +12,11 @@ pub fn get_mime_type(path: &Path) -> String {
         None => String::new(),
     }
 }
+
+pub fn check_path_exists(path: &Path) -> bool {
+    // Check if the path exists
+    match path.try_exists() {
+        Err(_) => false,
+        Ok(exists) => exists,
+    }
+}
