@@ -1,7 +1,7 @@
 use crate::filesystem::{objects::Entry, utils};
 use directories_next::UserDirs;
 use open;
-use std::fs;
+use std::{fs, path::PathBuf};
 
 #[tauri::command]
 pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
@@ -63,6 +63,87 @@ pub fn get_dir_content(path: String) -> Result<Vec<Entry>, String> {
             Ok(entries)
         }
         Err(e) => Err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn create_path(dir: String, name: String, is_file: bool) -> Result<(), String> {
+    // Check if the dir exists first
+    let mut path = PathBuf::from(&dir);
+    if !utils::check_path_exists(&path) {
+        return Err(String::from("The given directory doesn't exists"));
+    }
+
+    // Append the name to the path object
+    // then check if the path exists
+    path.extend([name]);
+    if utils::check_path_exists(&path) {
+        return Err(String::from("The given path already exists"));
+    }
+
+    // Handle if the path should be a file or a directory
+    if is_file {
+        match fs::File::create(path) {
+            Err(e) => Err(e.to_string()),
+            Ok(_) => Ok(()),
+        }
+    } else {
+        match fs::create_dir(path) {
+            Err(e) => Err(e.to_string()),
+            Ok(()) => Ok(()),
+        }
+    }
+}
+
+#[tauri::command]
+pub fn rename_path(path: String, name: String) -> Result<(), String> {
+    // Check if the dir exists first
+    let path_obj = PathBuf::from(&path);
+    if !utils::check_path_exists(&path_obj) {
+        return Err(String::from("The given path doesn't exists"));
+    }
+
+    // Create the new path
+    let new_path = if let Some(parent) = path_obj.parent() {
+        let mut parent = parent.to_path_buf();
+        parent.push(&name);
+        parent
+    } else {
+        return Err(String::from("Cannot rename the given path"));
+    };
+
+    // Check if the new path already exists
+    if utils::check_path_exists(&new_path) {
+        return Err(String::from(format!("Path {:} already exists", name)));
+    }
+
+    match fs::rename(path, new_path) {
+        Err(e) => Err(e.to_string()),
+        Ok(()) => Ok(()),
+    }
+}
+
+#[tauri::command]
+pub fn remove_path(path: String) -> Result<(), String> {
+    let path_obj = PathBuf::from(&path);
+
+    // Check if the path exists
+    if !utils::check_path_exists(&path_obj) {
+        return Err(String::from("The given path doesn't exist"));
+    }
+
+    // Check if the path is a file or a directory
+    // to handle which remove function to use
+    if path_obj.is_dir() {
+        match fs::remove_dir_all(path) {
+            Err(e) => return Err(e.to_string()),
+            Ok(()) => Ok(()),
+        }
+    } else {
+        match fs::remove_file(path) {
+            Err(e) => return Err(e.to_string()),
+            Ok(()) => Ok(()),
+        }
     }
 }
 
