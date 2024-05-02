@@ -1,4 +1,4 @@
-import { createSignal, onMount, createResource, Show } from "solid-js";
+import { createSignal, onMount, createResource, Show, createEffect } from "solid-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import { createHistory } from "./createHistory";
 import { AppSettings, Entry } from "./types";
@@ -11,7 +11,7 @@ import Header from "./Header";
 function App() {
   const [path, setPath, pathObj] = createHistory<string>("");
   const [userDirs, setUserDirs] = createSignal<Record<string, string>>({});
-  const [items] = createResource(path, (path) => {
+  const [itemsResource] = createResource(path, (path) => {
     if (path !== "") {
       return invoke("get_dir_content", { path }) as unknown as Entry[]
     }
@@ -23,6 +23,19 @@ function App() {
     theme: "default"
   })
 
+  const collator = new Intl.Collator('en');
+  const [list, setList] = createStore<Entry[]>([])
+  const [selectedIndex, setSelectedIndex] = createSignal<number | undefined>();
+
+  createEffect(() => {
+    if (itemsResource.loading === true) {
+      return
+    }
+    setList(itemsResource()!
+      .filter(a => !a.name.startsWith('.') || settings.showHidden)
+      .sort((a, b) => collator.compare(a.name, b.name)));
+  })
+
   onMount(async () => {
     const dirs: Entry[] = await invoke("get_user_dirs")
     setUserDirs(Object.fromEntries(dirs.map(a => [a.name, a.path])))
@@ -31,7 +44,6 @@ function App() {
 
     document.addEventListener('keydown', (e) => {
       if (e.ctrlKey) {
-
         if (e.key === 'h') {
           setSettings('showHidden', (a) => !a)
         } else if (e.key === 'ArrowLeft') {
@@ -40,16 +52,39 @@ function App() {
           pathObj.forward()
         }
       }
+      else if (e.key === 'ArrowUp') {
+        const curIndex = selectedIndex()
+        if (curIndex !== undefined && curIndex > 0) {
+          setSelectedIndex(curIndex - 1)
+        }
+      } else if (e.key === 'ArrowDown') {
+        const curIndex = selectedIndex()
+        if (curIndex === undefined) {
+          setSelectedIndex(0)
+        } else if (curIndex < list.length - 1) {
+          setSelectedIndex(curIndex + 1)
+        }
+      } else if (e.key === "Enter") {
+        const curIndex = selectedIndex()
+        if (curIndex !== undefined) {
+          const item = list.at(curIndex)!
+          if (item.is_dir) { setPath(item.path); }
+          else invoke("open_file", { path: item.path })
+        }
+      }
     })
   })
 
+
   return (
     <div class="container">
-      <Header path={path} setPath={setPath} pathObj={pathObj} settings={settings} setSettings={setSettings}/>
+      <Header path={path} setPath={setPath} pathObj={pathObj} settings={settings} setSettings={setSettings} />
       <Show when={Object.hasOwn(userDirs(), "Home")} >
         <UserDirs path={path} setPath={setPath} userDirs={userDirs} />
       </Show  >
-      <ListView items={items} settings={settings} setPath={setPath} />
+      <Show when={!itemsResource.loading}>
+        <ListView list={list} setList={setList} settings={settings} setPath={setPath} selectedIndex={selectedIndex} setSelectedIndex={setSelectedIndex} />
+      </Show>
     </div >
   );
 }

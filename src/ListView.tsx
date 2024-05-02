@@ -1,15 +1,20 @@
-import { For, Resource, Show } from "solid-js";
+import { Accessor, For, Setter, createSelector } from "solid-js";
 import { Entry } from "./types";
 import { Folder, File, FileImage, FileAudio2, FileVideo } from "lucide-solid";
 import { invoke } from "@tauri-apps/api";
+import { SetStoreFunction } from "solid-js/store";
 
 interface Props {
-  items: Resource<Entry[]>;
+  list: Entry[];
+  setList: SetStoreFunction<Entry[]>
   settings: { showHidden: boolean }
   setPath: (arg0: string) => void;
+  selectedIndex: Accessor<number | undefined>
+  setSelectedIndex: Setter<number | undefined>
 }
 
 export default function ListView(props: Props) {
+  const selected = createSelector(props.selectedIndex)
   const getIcon = (item: Entry) => {
     if (item.is_dir) return <Folder />
     else if (item.mime_type.startsWith('image')) return <FileImage />
@@ -17,24 +22,22 @@ export default function ListView(props: Props) {
     else if (item.mime_type.startsWith("video")) return <FileVideo />
     return <File />
   }
-  const collator = new Intl.Collator('en');
+
   return <section class='list-view'>
-    <Show when={!props.items.loading}>
-      <ul class='list-view-list'>
-        <For each={
-          props.items()!
-            .filter(a => !a.name.startsWith('.') || props.settings.showHidden)
-            .sort((a, b) => collator.compare(a.name, b.name))
-        } >
-          {(item) => <li tabindex='0' onClick={() => {
+    <ul class='list-view-list'>
+      <For each={props.list} >
+        {(item, index) => <li classList={{ selected: selected(index()) }} tabindex='0' onClick={() => {
+          if (selected(index())) {
             if (item.is_dir) { props.setPath(item.path); }
             else invoke("open_file", { path: item.path })
-          }}>
-            {getIcon(item)}
-            <span>{item.name}</span>
-          </li>}
-        </For>
-      </ul>
-    </Show>
+          } else {
+            props.setSelectedIndex(index())
+          }
+        }}>
+          {getIcon(item)}
+          <span>{item.name}</span>
+        </li>}
+      </For>
+    </ul>
   </section>
 }
