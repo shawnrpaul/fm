@@ -23,7 +23,7 @@ export default function ListView(props: Props) {
       <ul class='list-view-list'>
         <For each={
           props.items()!
-            .filter(a => !a.name.startsWith('.') || props.settings.showHidden)
+            .filter(a => !a.is_hidden || props.settings.showHidden)
             .sort((a, b) => collator.compare(a.name, b.name))
         } >
           {(item) => <li onClick={() => {

@@ -1,7 +1,10 @@
 use crate::filesystem::{objects::Entry, utils};
 use directories_next::UserDirs;
 use open;
-use std::{fs, path::PathBuf};
+use std::{env, fs, path::PathBuf};
+
+#[cfg(target_os = "windows")]
+use std::os::windows::fs::MetadataExt;
 
 #[tauri::command]
 pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
@@ -11,7 +14,14 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
         // add the home path first
         let home_dir = user_dirs.home_dir();
         let path = home_dir.canonicalize().unwrap();
-        directories.push(Entry::new("Home".to_string(), path, true, 0, String::new()));
+        directories.push(Entry::new(
+            "Home".to_string(),
+            path,
+            true,
+            0,
+            false,
+            String::new(),
+        ));
 
         let user_dir_paths = vec![
             user_dirs.audio_dir(),
@@ -30,7 +40,7 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
             if let Some(user_dir) = user_dir_path {
                 let name = user_dir.file_name().unwrap().to_str().unwrap().to_string();
                 let path = user_dir.canonicalize().unwrap();
-                directories.push(Entry::new(name, path, true, 0, String::new()));
+                directories.push(Entry::new(name, path, true, 0, false, String::new()));
             }
         }
         return Ok(directories);
@@ -57,7 +67,15 @@ pub fn get_dir_content(path: String) -> Result<Vec<Entry>, String> {
                 let is_dir = entry_info.is_dir();
                 let size = if is_dir { 0 } else { entry_info.len() };
                 let mime_type = utils::get_mime_type(&path);
-                entries.push(Entry::new(name, path, is_dir, size, mime_type));
+
+                let is_hidden = if env::consts::OS == "windows" {
+                    let attrs = entry_info.file_attributes();
+                    (attrs & 0x2) > 0
+                } else {
+                    name.starts_with(".")
+                };
+
+                entries.push(Entry::new(name, path, is_dir, size, is_hidden, mime_type));
             }
 
             Ok(entries)
