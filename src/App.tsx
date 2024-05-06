@@ -1,5 +1,6 @@
 import { createSignal, onMount, createResource, Show, createEffect } from "solid-js";
 import { invoke } from "@tauri-apps/api/tauri";
+import { getMatches } from "@tauri-apps/api/cli";
 import { createHistory } from "./createHistory";
 import { AppSettings, Entry } from "./types";
 import UserDirs from "./UserDirs";
@@ -40,7 +41,18 @@ function App() {
     const dirs: Entry[] = await invoke("get_user_dirs")
     setUserDirs(Object.fromEntries(dirs.map(a => [a.name, a.path])))
     pathObj.clear();
-    setPath(userDirs()!["Home"]!)
+
+    let matches = await getMatches();
+    let path = null;
+    if ("path" in matches.args) {
+      path = matches.args.path.value;
+    }
+
+    if (!path) {
+      setPath(userDirs()!["Home"]!)
+    } else {
+      setPath(path)
+    }
 
     document.addEventListener('keydown', (e) => {
       if (e.ctrlKey) {

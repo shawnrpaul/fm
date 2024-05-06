@@ -24,6 +24,17 @@
         "height": 600
       }
     ],
+    "cli": {
+      "description": "Open the file manager app",
+      "args": [
+        {
+          "name": "path",
+          "index": 1,
+          "takesValue": true,
+          "required": false
+        }
+      ]
+    },
     "security": {
       "csp": null
     },
