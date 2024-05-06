@@ -3,6 +3,7 @@ export interface Entry {
   path: string
   is_dir: boolean,
   size: bigint,
+  is_hidden: boolean,
   mime_type: string
   isSelected: boolean
 }
