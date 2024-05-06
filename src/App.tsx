@@ -33,7 +33,7 @@ function App() {
       return
     }
     setList(itemsResource()!
-      .filter(a => !a.name.startsWith('.') || settings.showHidden)
+      .filter(a => !a.is_hidden || settings.showHidden)
       .sort((a, b) => collator.compare(a.name, b.name)));
   })
 
