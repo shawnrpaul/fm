@@ -13,7 +13,8 @@ fn main() {
             api::get_dir_content,
             api::open_file,
             api::open_file_with,
-            api::remove_path
+            api::remove_path,
+            api::rename_path
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

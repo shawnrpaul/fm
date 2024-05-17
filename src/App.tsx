@@ -5,7 +5,7 @@ import { createHistory } from "./createHistory";
 import { AppSettings, Entry } from "./types";
 import UserDirs from "./UserDirs";
 import ListView from "./ListView";
-import { createStore } from "solid-js/store";
+import { createStore, produce, unwrap } from "solid-js/store";
 import Header from "./Header";
 
 
@@ -77,14 +77,15 @@ function App() {
         } else if (curIndex < list.length - 1) {
           setSelectedIndex(curIndex + 1)
         }
-      } else if (e.key === "Enter") {
-        const curIndex = selectedIndex()
-        if (curIndex !== undefined) {
-          const item = list.at(curIndex)!
-          if (item.is_dir) { setPath(item.path); }
-          else invoke("open_file", { path: item.path })
-        }
-      }
+      } 
+      // else if (e.key === "Enter") {
+      //   const curIndex = selectedIndex()
+      //   if (curIndex !== undefined) {
+      //     const item = list.at(curIndex)!
+      //     if (item.is_dir) { setPath(item.path); }
+      //     else invoke("open_file", { path: item.path })
+      //   }
+      // }
     })
   })
 
@@ -95,11 +96,24 @@ function App() {
         .then(() => setList((e) => e.filter((_, i) => index !== i)));
     }
   }
+
+  const renameSelected = (newName: string) => {
+    const index = selectedIndex();
+    if (index !== undefined) {
+      invoke("rename_path", { path: list.at(index)?.path, name: newName })
+        .then(() => setList(index, produce((e) => {
+          e.name = newName.split('/').at(-1)!;
+          e.path = newName
+        })));
+    }
+  }
   return (
     <div class="container" oncapture:contextmenu={(e) => {
       const a = e.target.closest('li')?.dataset.index
       if (a) {
         setSelectedIndex(+a);
+      } else {
+        setSelectedIndex(undefined)
       }
     }}>
       <Header path={path} setPath={setPath} pathObj={pathObj} settings={settings} setSettings={setSettings} />
@@ -107,7 +121,7 @@ function App() {
         <UserDirs path={path} setPath={setPath} userDirs={userDirs} />
       </Show  >
       <Show when={!itemsResource.loading}>
-        <ListView list={list} setList={setList} settings={settings} setPath={setPath} selectedIndex={selectedIndex} setSelectedIndex={setSelectedIndex} selected={selected} deleteSelected={deleteSelected} />
+        <ListView list={list} setList={setList} settings={settings} setPath={setPath} selectedIndex={selectedIndex} setSelectedIndex={setSelectedIndex} selected={selected} deleteSelected={deleteSelected} renameSelected={renameSelected} />
       </Show>
     </div >
   );
