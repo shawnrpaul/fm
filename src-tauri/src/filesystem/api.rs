@@ -2,6 +2,24 @@ use crate::filesystem::{objects::Entry, utils};
 use directories_next::UserDirs;
 use open;
 use std::{fs, path::PathBuf};
+use sysinfo::Disks;
+
+#[tauri::command]
+pub fn get_drives() -> Result<Vec<Entry>, String> {
+    let mut drives: Vec<Entry> = Vec::new();
+    let disks = Disks::new_with_refreshed_list();
+    for disk in &disks {
+        drives.push(Entry::new(
+            disk.name().to_str().unwrap().to_string(),
+            disk.mount_point().to_path_buf(),
+            true,
+            disk.total_space() - disk.available_space(),
+            false,
+            String::new(),
+        ))
+    }
+    Ok(drives)
+}
 
 #[tauri::command]
 pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
