@@ -12,7 +12,8 @@ fn main() {
             api::get_user_dirs,
             api::get_dir_content,
             api::open_file,
-            api::open_file_with
+            api::open_file_with,
+            api::remove_path
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

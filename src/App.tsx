@@ -1,4 +1,4 @@
-import { createSignal, onMount, createResource, Show, createEffect } from "solid-js";
+import { createSignal, onMount, createResource, Show, createEffect, createSelector } from "solid-js";
 import { invoke } from "@tauri-apps/api/tauri";
 import { getMatches } from "@tauri-apps/api/cli";
 import { createHistory } from "./createHistory";
@@ -27,6 +27,7 @@ function App() {
   const collator = new Intl.Collator('en');
   const [list, setList] = createStore<Entry[]>([])
   const [selectedIndex, setSelectedIndex] = createSignal<number | undefined>();
+  const selected = createSelector(selectedIndex)
 
   createEffect(() => {
     if (itemsResource.loading === true) {
@@ -87,15 +88,26 @@ function App() {
     })
   })
 
-
+  const deleteSelected = () => {
+    const index = selectedIndex();
+    if (index !== undefined) {
+      invoke("remove_path", { path: list.at(index)?.path })
+        .then(() => setList((e) => e.filter((_, i) => index !== i)));
+    }
+  }
   return (
-    <div class="container">
+    <div class="container" oncapture:contextmenu={(e) => {
+      const a = e.target.closest('li')?.dataset.index
+      if (a) {
+        setSelectedIndex(+a);
+      }
+    }}>
       <Header path={path} setPath={setPath} pathObj={pathObj} settings={settings} setSettings={setSettings} />
       <Show when={Object.hasOwn(userDirs(), "Home")} >
         <UserDirs path={path} setPath={setPath} userDirs={userDirs} />
       </Show  >
       <Show when={!itemsResource.loading}>
-        <ListView list={list} setList={setList} settings={settings} setPath={setPath} selectedIndex={selectedIndex} setSelectedIndex={setSelectedIndex} />
+        <ListView list={list} setList={setList} settings={settings} setPath={setPath} selectedIndex={selectedIndex} setSelectedIndex={setSelectedIndex} selected={selected} deleteSelected={deleteSelected} />
       </Show>
     </div >
   );
