@@ -1,10 +1,7 @@
 use crate::filesystem::{objects::Entry, utils};
 use directories_next::UserDirs;
 use open;
-use std::{env, fs, path::PathBuf};
-
-#[cfg(target_os = "windows")]
-use std::os::windows::fs::MetadataExt;
+use std::{fs, path::PathBuf};
 
 #[tauri::command]
 pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
@@ -68,12 +65,7 @@ pub fn get_dir_content(path: String) -> Result<Vec<Entry>, String> {
                 let size = if is_dir { 0 } else { entry_info.len() };
                 let mime_type = utils::get_mime_type(&path);
 
-                let is_hidden = if env::consts::OS == "windows" {
-                    let attrs = entry_info.file_attributes();
-                    (attrs & 0x2) > 0
-                } else {
-                    name.starts_with(".")
-                };
+                let is_hidden = utils::is_entry_hidden(dir_entry);
 
                 entries.push(Entry::new(name, path, is_dir, size, is_hidden, mime_type));
             }
