@@ -9,6 +9,7 @@ use crate::filesystem::api;
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
+            api::get_settings,
             api::get_drives,
             api::get_user_dirs,
             api::get_dir_content,

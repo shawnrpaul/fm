@@ -23,6 +23,7 @@ function App() {
     showHidden: false,
     theme: "default"
   })
+  invoke("get_settings").then(settings => { setSettings(settings) })
 
   const collator = new Intl.Collator('en');
   const [list, setList] = createStore<Entry[]>([])
@@ -77,7 +78,7 @@ function App() {
         } else if (curIndex < list.length - 1) {
           setSelectedIndex(curIndex + 1)
         }
-      } 
+      }
       // else if (e.key === "Enter") {
       //   const curIndex = selectedIndex()
       //   if (curIndex !== undefined) {
