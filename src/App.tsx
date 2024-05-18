@@ -5,8 +5,10 @@ import { createHistory } from "./createHistory";
 import { AppSettings, Entry } from "./types";
 import UserDirs from "./UserDirs";
 import ListView from "./ListView";
-import { createStore, produce, unwrap } from "solid-js/store";
-import Header from "./Header";
+import { createStore, produce } from "solid-js/store";
+import Header from "./components/Header";
+import DialogProvider from "./components/DialogProvider";
+import ContextMenuProvider from "./components/ContextMenuProvider";
 
 
 function App() {
@@ -28,6 +30,7 @@ function App() {
   const [list, setList] = createStore<Entry[]>([])
   const [selectedIndex, setSelectedIndex] = createSignal<number | undefined>();
   const selected = createSelector(selectedIndex)
+  const [openDialog, setOpenDialog] = createSignal(false);
 
   createEffect(() => {
     if (itemsResource.loading === true) {
@@ -44,18 +47,17 @@ function App() {
     pathObj.clear();
 
     let matches = await getMatches();
-    let path = null;
     if ("path" in matches.args) {
-      path = matches.args.path.value;
-    }
-
-    if (!path) {
-      setPath(userDirs()!["Home"]!)
-    } else {
-      setPath(path)
+      let path = matches.args.path.value as string;
+      if (!path) {
+        setPath(userDirs()!["Home"]!)
+      } else {
+        setPath(path)
+      }
     }
 
     document.addEventListener('keydown', (e) => {
+      if (openDialog()) return;
       if (e.ctrlKey) {
         if (e.key === 'h') {
           setSettings('showHidden', (a) => !a)
@@ -77,17 +79,26 @@ function App() {
         } else if (curIndex < list.length - 1) {
           setSelectedIndex(curIndex + 1)
         }
-      } 
-      // else if (e.key === "Enter") {
-      //   const curIndex = selectedIndex()
-      //   if (curIndex !== undefined) {
-      //     const item = list.at(curIndex)!
-      //     if (item.is_dir) { setPath(item.path); }
-      //     else invoke("open_file", { path: item.path })
-      //   }
-      // }
+      }
+      else if (e.key === "Enter") {
+        const curIndex = selectedIndex()
+        if (curIndex !== undefined) {
+          const item = list.at(curIndex)!
+          if (item.is_dir) { setPath(item.path); }
+          else invoke("open_file", { path: item.path })
+        }
+      }
     })
   })
+
+  const selectOrOpen = (entry: Entry, index: number) => {
+    if (selected(index)) {
+      if (entry.is_dir) { setPath(entry.path); }
+      else invoke("open_file", { path: entry.path })
+    } else {
+      setSelectedIndex(index)
+    }
+  }
 
   const deleteSelected = () => {
     const index = selectedIndex();
@@ -121,7 +132,25 @@ function App() {
         <UserDirs path={path} setPath={setPath} userDirs={userDirs} />
       </Show  >
       <Show when={!itemsResource.loading}>
-        <ListView list={list} setList={setList} settings={settings} setPath={setPath} selectedIndex={selectedIndex} setSelectedIndex={setSelectedIndex} selected={selected} deleteSelected={deleteSelected} renameSelected={renameSelected} />
+        <DialogProvider
+          list={list}
+          openDialog={openDialog}
+          setOpenDialog={setOpenDialog}
+          renameSelected={renameSelected}
+          selectedIndex={selectedIndex}
+          deleteSelected={deleteSelected}
+        >
+          <ContextMenuProvider
+            setOpenDialog={setOpenDialog}
+            deleteSelected={deleteSelected}>
+            <ListView
+              list={list}
+              setList={setList}
+              selected={selected}
+              selectOrOpen={selectOrOpen}
+            />
+          </ContextMenuProvider>
+        </DialogProvider>
       </Show>
     </div >
   );
