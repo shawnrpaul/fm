@@ -51,7 +51,7 @@ export default function DialogProvider(props: Props) {
 									name="newpath"
 									value={
 										props.list.at(props.selectedIndex() as unknown as number)
-											?.path
+											?.name
 									}
 								/>
 								<button type="submit">Rename</button>

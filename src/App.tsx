@@ -14,7 +14,7 @@ import ContextMenuProvider from "./components/ContextMenuProvider";
 function App() {
   const [path, setPath, pathObj] = createHistory<string>("");
   const [userDirs, setUserDirs] = createSignal<Record<string, string>>({});
-  const [itemsResource] = createResource(path, (path) => {
+  const [entryListResource, { mutate: mutateEntryListResource }] = createResource(path, (path) => {
     if (path !== "") {
       return invoke("get_dir_content", { path }) as unknown as Entry[]
     }
@@ -27,16 +27,16 @@ function App() {
   })
 
   const collator = new Intl.Collator('en');
-  const [list, setList] = createStore<Entry[]>([])
+  const [entryList, setEntryList] = createStore<Entry[]>([])
   const [selectedIndex, setSelectedIndex] = createSignal<number | undefined>();
   const selected = createSelector(selectedIndex)
   const [openDialog, setOpenDialog] = createSignal(false);
 
   createEffect(() => {
-    if (itemsResource.loading === true) {
+    if (entryListResource.loading === true) {
       return
     }
-    setList(itemsResource()!
+    setEntryList(entryListResource()!
       .filter(a => !a.is_hidden || settings.showHidden)
       .sort((a, b) => collator.compare(a.name, b.name)));
   })
@@ -76,14 +76,14 @@ function App() {
         const curIndex = selectedIndex()
         if (curIndex === undefined) {
           setSelectedIndex(0)
-        } else if (curIndex < list.length - 1) {
+        } else if (curIndex < entryList.length - 1) {
           setSelectedIndex(curIndex + 1)
         }
       }
       else if (e.key === "Enter") {
         const curIndex = selectedIndex()
         if (curIndex !== undefined) {
-          const item = list.at(curIndex)!
+          const item = entryList.at(curIndex)!
           if (item.is_dir) { setPath(item.path); }
           else invoke("open_file", { path: item.path })
         }
@@ -101,23 +101,34 @@ function App() {
   }
 
   const deleteSelected = () => {
-    const index = selectedIndex();
+    const index = selectedIndex()!
     if (index !== undefined) {
-      invoke("remove_path", { path: list.at(index)?.path })
-        .then(() => setList((e) => e.filter((_, i) => index !== i)));
+      const path = entryList.at(index)?.path
+      invoke("remove_path", { path })
+        .then(() => {
+          return mutateEntryListResource(a => (a as Entry[]).filter((entry) => entry.path !== path));
+        })
     }
   }
 
   const renameSelected = (newName: string) => {
     const index = selectedIndex();
     if (index !== undefined) {
-      invoke("rename_path", { path: list.at(index)?.path, name: newName })
-        .then(() => setList(index, produce((e) => {
-          e.name = newName.split('/').at(-1)!;
-          e.path = newName
-        })));
+      const entry = entryList.at(index)!
+      const path = entry.path;
+      invoke("rename_path", { path, name: newName })
+        .then(() => {
+          mutateEntryListResource((a) => {
+            const index = a!.findIndex(a => a.path === path);
+            const newPath = path.substring(0, path.indexOf(entry.name)) + newName;
+            const newObj = { ...entry, path: newPath, name: newName }
+            console.log(newObj)
+            return a.with(index, newObj);
+          })
+        })
     }
   }
+
   return (
     <div class="container" oncapture:contextmenu={(e) => {
       const a = e.target.closest('li')?.dataset.index
@@ -131,9 +142,9 @@ function App() {
       <Show when={Object.hasOwn(userDirs(), "Home")} >
         <UserDirs path={path} setPath={setPath} userDirs={userDirs} />
       </Show  >
-      <Show when={!itemsResource.loading}>
+      <Show when={!entryListResource.loading}>
         <DialogProvider
-          list={list}
+          list={entryList}
           openDialog={openDialog}
           setOpenDialog={setOpenDialog}
           renameSelected={renameSelected}
@@ -144,8 +155,8 @@ function App() {
             setOpenDialog={setOpenDialog}
             deleteSelected={deleteSelected}>
             <ListView
-              list={list}
-              setList={setList}
+              list={entryList}
+              setList={setEntryList}
               selected={selected}
               selectOrOpen={selectOrOpen}
             />
