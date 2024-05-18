@@ -1,7 +1,8 @@
 import { DropdownMenu } from "@kobalte/core";
-import { Settings, CheckIcon} from "lucide-solid";
+import { Settings, CheckIcon } from "lucide-solid";
 import { AppSettings } from "./types";
 import { SetStoreFunction } from "solid-js/store";
+import { invoke } from "@tauri-apps/api";
 
 interface Props {
   settings: AppSettings
@@ -21,7 +22,7 @@ export default function SettingsMenu(props: Props) {
           <DropdownMenu.CheckboxItem
             class="dropdown-menu__checkbox-item"
             checked={props.settings.showHidden}
-            onChange={(newValue) => props.setSettings('showHidden', newValue)}
+            onChange={(newValue) => invoke("update_settings", { setting: "showHidden", value: newValue }) && props.setSettings('showHidden', newValue)}
           >
             <DropdownMenu.ItemIndicator class="dropdown-menu__item-indicator">
               <CheckIcon />

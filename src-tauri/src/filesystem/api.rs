@@ -32,6 +32,27 @@ pub fn get_settings() -> Result<serde_json::Value, String> {
 }
 
 #[tauri::command]
+pub fn update_settings(setting: String, value: serde_json::Value) -> Result<(), String> {
+    if let Some(proj_dirs) = ProjectDirs::from("com", "Srpboyz", "fm") {
+        let config_dir = proj_dirs.config_dir();
+        let settings_path = config_dir.join("settings.json");
+
+        let settings_data = fs::read_to_string(&settings_path).expect("Unable to read file");
+        let mut settings: serde_json::Value =
+            serde_json::from_str(&settings_data).expect("Unable to parse");
+
+        settings[setting] = value;
+
+        let settings_data = serde_json::to_string_pretty(&settings).unwrap();
+
+        fs::write(&settings_path, settings_data.as_bytes()).unwrap();
+
+        return Ok(());
+    };
+    Err(String::from("Home directory couldn't be retrieved"))
+}
+
+#[tauri::command]
 pub fn get_drives() -> Result<Vec<Entry>, String> {
     let mut drives: Vec<Entry> = Vec::new();
     let disks = Disks::new_with_refreshed_list();
