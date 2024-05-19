@@ -1,7 +1,7 @@
 use crate::filesystem::{objects::Entry, utils};
 use directories_next::{ProjectDirs, UserDirs};
 use open;
-use std::{fs, io::Write, path::PathBuf};
+use std::{fs, path::PathBuf, time::SystemTime};
 use sysinfo::Disks;
 
 #[tauri::command]
@@ -18,10 +18,7 @@ pub fn get_settings() -> Result<serde_json::Value, String> {
             fs::read_to_string(settings_path).expect("Unable to read file")
         } else {
             let str = String::from("{\n\t\"showHidden\": false,\n\t\"theme\": \"default\"\n}");
-            fs::File::create(settings_path)
-                .unwrap()
-                .write(str.as_bytes())
-                .unwrap();
+            fs::write(settings_path, str.as_bytes()).unwrap();
             str
         };
         let settings: serde_json::Value =
@@ -57,6 +54,25 @@ pub fn get_drives() -> Result<Vec<Entry>, String> {
     let mut drives: Vec<Entry> = Vec::new();
     let disks = Disks::new_with_refreshed_list();
     for disk in &disks {
+        let updated_at = disk
+            .mount_point()
+            .metadata()
+            .unwrap()
+            .modified()
+            .unwrap()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let created_at = disk
+            .mount_point()
+            .metadata()
+            .unwrap()
+            .created()
+            .unwrap()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
         drives.push(Entry::new(
             disk.name().to_str().unwrap().to_string(),
             disk.mount_point().to_path_buf(),
@@ -64,6 +80,8 @@ pub fn get_drives() -> Result<Vec<Entry>, String> {
             disk.total_space() - disk.available_space(),
             false,
             String::new(),
+            updated_at,
+            created_at,
         ))
     }
     Ok(drives)
@@ -77,6 +95,19 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
         // add the home path first
         let home_dir = user_dirs.home_dir();
         let path = home_dir.canonicalize().unwrap();
+        let entry_info = path.metadata().unwrap();
+        let updated_at = entry_info
+            .modified()
+            .unwrap()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let created_at = entry_info
+            .created()
+            .unwrap()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         directories.push(Entry::new(
             "Home".to_string(),
             path,
@@ -84,6 +115,8 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
             0,
             false,
             String::new(),
+            updated_at,
+            created_at,
         ));
 
         let user_dir_paths = vec![
@@ -104,7 +137,29 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
                 match user_dir.canonicalize() {
                     Ok(path) => {
                         let name = user_dir.file_name().unwrap().to_str().unwrap().to_string();
-                        directories.push(Entry::new(name, path, true, 0, false, String::new()));
+                        let entry_info = path.metadata().unwrap();
+                        let updated_at = entry_info
+                            .modified()
+                            .unwrap()
+                            .duration_since(SystemTime::UNIX_EPOCH)
+                            .unwrap()
+                            .as_secs();
+                        let created_at = entry_info
+                            .created()
+                            .unwrap()
+                            .duration_since(SystemTime::UNIX_EPOCH)
+                            .unwrap()
+                            .as_secs();
+                        directories.push(Entry::new(
+                            name,
+                            path,
+                            true,
+                            0,
+                            false,
+                            String::new(),
+                            updated_at,
+                            created_at,
+                        ));
                     }
                     Err(_) => (),
                 }
@@ -134,9 +189,23 @@ pub fn get_dir_content(path: String) -> Result<Vec<Entry>, String> {
                 let is_dir = entry_info.is_dir();
                 let size = if is_dir { 0 } else { entry_info.len() };
                 let mime_type = utils::get_mime_type(&path);
+                let updated_at = entry_info
+                    .modified()
+                    .unwrap()
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs();
+                let created_at = entry_info
+                    .created()
+                    .unwrap()
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs();
                 let is_hidden = utils::is_entry_hidden(dir_entry);
 
-                entries.push(Entry::new(name, path, is_dir, size, is_hidden, mime_type));
+                entries.push(Entry::new(
+                    name, path, is_dir, size, is_hidden, mime_type, updated_at, created_at,
+                ));
             }
 
             Ok(entries)

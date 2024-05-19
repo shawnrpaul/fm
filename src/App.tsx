@@ -38,7 +38,7 @@ function App() {
       return
     }
     setEntryList(entryListResource()!
-      .filter(a => !a.is_hidden || settings.showHidden)
+      .filter(a => !a.metadata.is_hidden || settings.showHidden)
       .sort((a, b) => collator.compare(a.name, b.name)));
   })
 

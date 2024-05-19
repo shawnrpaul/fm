@@ -13,9 +13,9 @@ interface Props {
 export default function ListView(props: Props) {
 	const getIcon = (item: Entry) => {
 		if (item.is_dir) return <Folder />;
-		else if (item.mime_type.startsWith("image")) return <FileImage />;
-		else if (item.mime_type.startsWith("audio")) return <FileAudio2 />;
-		else if (item.mime_type.startsWith("video")) return <FileVideo />;
+		else if (item.metadata.mime_type.startsWith("image")) return <FileImage />;
+		else if (item.metadata.mime_type.startsWith("audio")) return <FileAudio2 />;
+		else if (item.metadata.mime_type.startsWith("video")) return <FileVideo />;
 		return <File />;
 	};
 
