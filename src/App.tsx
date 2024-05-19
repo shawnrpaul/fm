@@ -23,6 +23,7 @@ function App() {
 
   const [settings, setSettings] = createStore<AppSettings>({
     showHidden: false,
+    deletePermanently: false,
     theme: "default"
   })
   invoke("get_settings").then(settings => { setSettings(settings as AppSettings) })
@@ -125,7 +126,7 @@ function App() {
     const index = selectedIndex()!
     if (index !== undefined) {
       const path = entryList.at(index)?.path
-      invoke("remove_path", { path })
+      invoke("remove_path", { path: path, permanently: settings.deletePermanently })
         .then(() => {
           return mutateEntryListResource(a => (a as Entry[]).filter((entry) => entry.path !== path));
         })

@@ -3,6 +3,7 @@ use directories_next::{ProjectDirs, UserDirs};
 use open;
 use std::{fs, path::PathBuf, time::SystemTime};
 use sysinfo::Disks;
+use trash;
 
 #[tauri::command]
 pub fn get_settings() -> Result<serde_json::Value, String> {
@@ -17,7 +18,7 @@ pub fn get_settings() -> Result<serde_json::Value, String> {
         let settings_data = if settings_path.exists() {
             fs::read_to_string(settings_path).expect("Unable to read file")
         } else {
-            let str = String::from("{\n\t\"showHidden\": false,\n\t\"theme\": \"default\"\n}");
+            let str = String::from("{\n\t\"showHidden\": false,\n\t\"deletePermanently\": false,\n\t\"theme\": \"default\"\n}");
             fs::write(settings_path, str.as_bytes()).unwrap();
             str
         };
@@ -272,7 +273,7 @@ pub fn rename_path(path: String, name: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn remove_path(path: String) -> Result<(), String> {
+pub fn remove_path(path: String, permanently: bool) -> Result<(), String> {
     let path_obj = PathBuf::from(&path);
 
     // Check if the path exists
@@ -280,15 +281,22 @@ pub fn remove_path(path: String) -> Result<(), String> {
         return Err(String::from("The given path doesn't exist"));
     }
 
-    // Check if the path is a file or a directory
-    // to handle which remove function to use
-    if path_obj.is_dir() {
-        match fs::remove_dir_all(path) {
-            Err(e) => return Err(e.to_string()),
-            Ok(()) => Ok(()),
+    if permanently {
+        // Check if the path is a file or a directory
+        // to handle which remove function to use
+        if path_obj.is_dir() {
+            match fs::remove_dir_all(path) {
+                Err(e) => return Err(e.to_string()),
+                Ok(()) => Ok(()),
+            }
+        } else {
+            match fs::remove_file(path) {
+                Err(e) => return Err(e.to_string()),
+                Ok(()) => Ok(()),
+            }
         }
     } else {
-        match fs::remove_file(path) {
+        match trash::delete(path) {
             Err(e) => return Err(e.to_string()),
             Ok(()) => Ok(()),
         }

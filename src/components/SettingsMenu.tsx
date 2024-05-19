@@ -29,6 +29,16 @@ export default function SettingsMenu(props: Props) {
             </DropdownMenu.ItemIndicator>
             Show Hidden Files
           </DropdownMenu.CheckboxItem>
+          <DropdownMenu.CheckboxItem
+            class="dropdown-menu__checkbox-item"
+            checked={props.settings.deletePermanently}
+            onChange={(newValue) => invoke("update_settings", { setting: "deletePermanently", value: newValue }) && props.setSettings('deletePermanently', newValue)}
+          >
+            <DropdownMenu.ItemIndicator class="dropdown-menu__item-indicator">
+              <CheckIcon />
+            </DropdownMenu.ItemIndicator>
+            Delete Permanently
+          </DropdownMenu.CheckboxItem>
           <DropdownMenu.Arrow />
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
