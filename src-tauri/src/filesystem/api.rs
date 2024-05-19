@@ -1,8 +1,56 @@
 use crate::filesystem::{objects::Entry, utils};
-use directories_next::UserDirs;
+use directories_next::{ProjectDirs, UserDirs};
 use open;
-use std::{fs, path::PathBuf};
+use std::{fs, io::Write, path::PathBuf};
 use sysinfo::Disks;
+
+#[tauri::command]
+pub fn get_settings() -> Result<serde_json::Value, String> {
+    if let Some(proj_dirs) = ProjectDirs::from("com", "Srpboyz", "fm") {
+        let config_dir = proj_dirs.config_dir();
+        if !config_dir.exists() {
+            fs::create_dir_all(config_dir).unwrap();
+        }
+
+        let settings_path = config_dir.join("settings.json");
+
+        let settings_data = if settings_path.exists() {
+            fs::read_to_string(settings_path).expect("Unable to read file")
+        } else {
+            let str = String::from("{\n\t\"showHidden\": false,\n\t\"theme\": \"default\"\n}");
+            fs::File::create(settings_path)
+                .unwrap()
+                .write(str.as_bytes())
+                .unwrap();
+            str
+        };
+        let settings: serde_json::Value =
+            serde_json::from_str(&settings_data).expect("Unable to parse");
+        return Ok(settings);
+    };
+    Err(String::from("Home directory couldn't be retrieved"))
+}
+
+#[tauri::command]
+pub fn update_settings(setting: String, value: serde_json::Value) -> Result<(), String> {
+    if let Some(proj_dirs) = ProjectDirs::from("com", "Srpboyz", "fm") {
+        let config_dir = proj_dirs.config_dir();
+        let settings_path = config_dir.join("settings.json");
+
+        let settings_data = fs::read_to_string(&settings_path).expect("Unable to read file");
+        let mut settings: serde_json::Value =
+            serde_json::from_str(&settings_data).expect("Unable to parse");
+
+        settings[setting] = value;
+
+        let settings_data = serde_json::to_string_pretty(&settings).unwrap();
+
+        fs::write(&settings_path, settings_data.as_bytes()).unwrap();
+
+        return Ok(());
+    };
+    Err(String::from("Home directory couldn't be retrieved"))
+}
 
 #[tauri::command]
 pub fn get_drives() -> Result<Vec<Entry>, String> {

@@ -25,6 +25,7 @@ function App() {
     showHidden: false,
     theme: "default"
   })
+  invoke("get_settings").then(settings => { setSettings(settings as AppSettings) })
 
   const collator = new Intl.Collator('en');
   const [entryList, setEntryList] = createStore<Entry[]>([])

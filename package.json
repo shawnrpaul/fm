@@ -13,16 +13,16 @@
   "license": "MIT",
   "dependencies": {
     "@kobalte/core": "^0.13.1",
-    "@tauri-apps/api": "^1.5.4",
+    "@tauri-apps/api": "^1.5.6",
     "lucide-solid": "^0.376.0",
-    "open-props": "^1.7.3",
+    "open-props": "^1.7.4",
     "solid-js": "^1.8.17",
     "solid-signals": "^1.9.1"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.5.11",
+    "@tauri-apps/cli": "^1.5.14",
     "typescript": "^5.4.5",
-    "vite": "^5.2.10",
+    "vite": "^5.2.11",
     "vite-plugin-solid": "^2.10.2"
   }
 }
