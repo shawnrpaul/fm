@@ -76,7 +76,7 @@ body {
   }
 }
 
-.list-view {
+.container>div {
   background-color: var(--surface-1);
   overflow-y: scroll;
 }

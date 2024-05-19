@@ -1,5 +1,5 @@
 import { Dialog } from "@kobalte/core/dialog";
-import { JSX, Setter, Accessor } from "solid-js";
+import { JSX, Setter, Accessor, createEffect, on } from "solid-js";
 import { X as CrossIcon } from "lucide-solid";
 import { Entry } from "../types";
 
@@ -20,7 +20,12 @@ export default function DialogProvider(props: Props) {
 			<Dialog.Portal>
 				<Dialog.Overlay class="dialog__overlay" />
 				<div class="dialog__positioner">
-					<Dialog.Content class="dialog__content">
+					<Dialog.Content
+						class="dialog__content"
+						onEscapeKeyDown={() => {
+							props.setOpenDialog(false);
+						}}
+					>
 						<div class="dialog__header">
 							<Dialog.Title class="dialog__title">
 								Rename{" "}

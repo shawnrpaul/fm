@@ -5,7 +5,7 @@ import { createHistory } from "./createHistory";
 import { AppSettings, Entry } from "./types";
 import UserDirs from "./UserDirs";
 import ListView from "./ListView";
-import { createStore, produce } from "solid-js/store";
+import { createStore } from "solid-js/store";
 import Header from "./components/Header";
 import DialogProvider from "./components/DialogProvider";
 import ContextMenuProvider from "./components/ContextMenuProvider";
@@ -14,7 +14,7 @@ import ContextMenuProvider from "./components/ContextMenuProvider";
 function App() {
   const [path, setPath, pathObj] = createHistory<string>("");
   const [userDirs, setUserDirs] = createSignal<Record<string, string>>({});
-  const [entryListResource, { mutate: mutateEntryListResource }] = createResource(path, (path) => {
+  const [entryListResource, { mutate: mutateEntryListResource, refetch: refetchEntryListResource }] = createResource(path, (path) => {
     if (path !== "") {
       return invoke("get_dir_content", { path }) as unknown as Entry[]
     }
@@ -58,21 +58,34 @@ function App() {
 
     document.addEventListener('keydown', (e) => {
       if (openDialog()) return;
+      const key = e.key.toLowerCase();
       if (e.ctrlKey) {
-        if (e.key === 'h') {
-          setSettings('showHidden', (a) => !a)
-        } else if (e.key === 'ArrowLeft') {
-          pathObj.back()
-        } else if (e.key === 'ArrowRight') {
-          pathObj.forward()
+        if (key === 'h') {
+          setSettings('showHidden', (a) => !a);
+          return;
+        }
+        if (key === 'r') {
+          refetchEntryListResource();
+          return;
         }
       }
-      else if (e.key === 'ArrowUp') {
+
+      if (e.altKey) {
+        if (key === 'arrowleft') {
+          pathObj.back();
+          return;
+        } else if (key === 'arrowright') {
+          pathObj.forward();
+          return;
+        }
+      }
+
+      else if (key === 'arrowup') {
         const curIndex = selectedIndex()
         if (curIndex !== undefined && curIndex > 0) {
           setSelectedIndex(curIndex - 1)
         }
-      } else if (e.key === 'ArrowDown') {
+      } else if (key === 'arrowdown') {
         const curIndex = selectedIndex()
         if (curIndex === undefined) {
           setSelectedIndex(0)
@@ -80,13 +93,20 @@ function App() {
           setSelectedIndex(curIndex + 1)
         }
       }
-      else if (e.key === "Enter") {
+      if (key === "enter") {
         const curIndex = selectedIndex()
         if (curIndex !== undefined) {
           const item = entryList.at(curIndex)!
           if (item.is_dir) { setPath(item.path); }
           else invoke("open_file", { path: item.path })
         }
+      } else if (key === "f2") {
+        const curIndex = selectedIndex()
+        if (curIndex !== undefined) {
+          setOpenDialog(true)
+        }
+      } else if (key === "delete") {
+        deleteSelected()
       }
     })
   })
@@ -122,8 +142,7 @@ function App() {
             const index = a!.findIndex(a => a.path === path);
             const newPath = path.substring(0, path.indexOf(entry.name)) + newName;
             const newObj = { ...entry, path: newPath, name: newName }
-            console.log(newObj)
-            return a.with(index, newObj);
+            return a!.with(index, newObj);
           })
         })
     }
