@@ -19,6 +19,7 @@ mime_guess = "2.0.4"
 open = "5.1.2"
 sysinfo = "0.30.12"
 trash = "4.1.1"
+normpath = "1.2.0"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

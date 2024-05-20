@@ -1,10 +1,9 @@
 use serde::Serialize;
-use std::path::PathBuf;
 
 #[derive(Serialize)]
 pub struct Entry {
     name: String,
-    path: PathBuf,
+    path: String,
     is_dir: bool,
     metadata: EntryMetaData,
 }
@@ -12,7 +11,7 @@ pub struct Entry {
 impl Entry {
     pub fn new(
         name: String,
-        path: PathBuf,
+        path: String,
         is_dir: bool,
         size: u64,
         is_hidden: bool,

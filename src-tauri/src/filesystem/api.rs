@@ -1,5 +1,6 @@
 use crate::filesystem::{objects::Entry, utils};
 use directories_next::{ProjectDirs, UserDirs};
+use normpath::PathExt;
 use open;
 use std::{fs, path::PathBuf, time::SystemTime};
 use sysinfo::Disks;
@@ -55,6 +56,14 @@ pub fn get_drives() -> Result<Vec<Entry>, String> {
     let mut drives: Vec<Entry> = Vec::new();
     let disks = Disks::new_with_refreshed_list();
     for disk in &disks {
+        let path = disk
+            .mount_point()
+            .normalize()
+            .unwrap()
+            .as_os_str()
+            .to_str()
+            .unwrap()
+            .to_string();
         let updated_at = disk
             .mount_point()
             .metadata()
@@ -76,7 +85,7 @@ pub fn get_drives() -> Result<Vec<Entry>, String> {
 
         drives.push(Entry::new(
             disk.name().to_str().unwrap().to_string(),
-            disk.mount_point().to_path_buf(),
+            path,
             true,
             disk.total_space() - disk.available_space(),
             false,
@@ -95,7 +104,7 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
 
         // add the home path first
         let home_dir = user_dirs.home_dir();
-        let path = home_dir.canonicalize().unwrap();
+        let path = home_dir.normalize().unwrap();
         let entry_info = path.metadata().unwrap();
         let updated_at = entry_info
             .modified()
@@ -111,7 +120,7 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
             .as_secs();
         directories.push(Entry::new(
             "Home".to_string(),
-            path,
+            path.as_os_str().to_str().unwrap().to_string(),
             true,
             0,
             false,
@@ -135,9 +144,10 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
         // add the remaining user dirs if exists
         for user_dir_path in user_dir_paths {
             if let Some(user_dir) = user_dir_path {
-                match user_dir.canonicalize() {
+                match user_dir.normalize() {
                     Ok(path) => {
                         let name = user_dir.file_name().unwrap().to_str().unwrap().to_string();
+                        let normalized_path = path.as_os_str().to_str().unwrap().to_string();
                         let entry_info = path.metadata().unwrap();
                         let updated_at = entry_info
                             .modified()
@@ -153,7 +163,7 @@ pub fn get_user_dirs() -> Result<Vec<Entry>, String> {
                             .as_secs();
                         directories.push(Entry::new(
                             name,
-                            path,
+                            normalized_path,
                             true,
                             0,
                             false,
@@ -185,7 +195,14 @@ pub fn get_dir_content(path: String) -> Result<Vec<Entry>, String> {
 
             for dir_entry in iter {
                 let name = dir_entry.file_name().into_string().unwrap();
-                let path = dir_entry.path().canonicalize().unwrap();
+                let path = dir_entry.path();
+                let normalized_path = path
+                    .normalize()
+                    .unwrap()
+                    .as_os_str()
+                    .to_str()
+                    .unwrap()
+                    .to_string();
                 let entry_info = dir_entry.metadata().unwrap();
                 let is_dir = entry_info.is_dir();
                 let size = if is_dir { 0 } else { entry_info.len() };
@@ -205,7 +222,14 @@ pub fn get_dir_content(path: String) -> Result<Vec<Entry>, String> {
                 let is_hidden = utils::is_entry_hidden(dir_entry);
 
                 entries.push(Entry::new(
-                    name, path, is_dir, size, is_hidden, mime_type, updated_at, created_at,
+                    name,
+                    normalized_path,
+                    is_dir,
+                    size,
+                    is_hidden,
+                    mime_type,
+                    updated_at,
+                    created_at,
                 ));
             }
 
