@@ -1,8 +1,9 @@
 import { DropdownMenu } from "@kobalte/core";
-import { Settings, CheckIcon } from "lucide-solid";
-import { AppSettings } from "./types";
+import { Settings, CheckIcon, Grid2x2, List } from "lucide-solid";
+import { AppSettings } from "../types";
 import { SetStoreFunction } from "solid-js/store";
 import { invoke } from "@tauri-apps/api";
+import { Show } from "solid-js";
 
 interface Props {
   settings: AppSettings
@@ -12,6 +13,16 @@ interface Props {
 export default function SettingsMenu(props: Props) {
   return (
     <DropdownMenu.Root>
+      <button onclick={() => {
+        const newValue = props.settings.view === 'grid' ? 'list' : 'grid';
+        props.setSettings('view', newValue);
+        invoke("update_settings", { setting: "grid", value: newValue });
+      }
+      }>
+        <Show when={props.settings.view === 'grid'} fallback={<Grid2x2 />}>
+          <List />
+        </Show>
+      </button>
       <DropdownMenu.Trigger class="dropdown-menu__trigger">
         <DropdownMenu.Icon class="dropdown-menu__trigger-icon">
           <Settings />

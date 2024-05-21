@@ -17,7 +17,9 @@ pub fn get_settings() -> Result<serde_json::Value, String> {
         let settings_data = if settings_path.exists() {
             fs::read_to_string(settings_path).expect("Unable to read file")
         } else {
-            let str = String::from("{\n\t\"showHidden\": false,\n\t\"theme\": \"default\"\n}");
+            let str = String::from(
+                "{\n\t\"showHidden\": false,\n\t\"theme\": \"default\",\n\t\"view\": \"grid\",\n\t\"gridItemSize\": 80\n}",
+            );
             fs::File::create(settings_path)
                 .unwrap()
                 .write(str.as_bytes())
