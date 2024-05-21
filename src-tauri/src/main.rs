@@ -18,6 +18,7 @@ fn main() {
             api::open_file_with,
             api::create_path,
             api::rename_path,
+            api::copy_path,
             api::remove_path
         ])
         .run(tauri::generate_context!())

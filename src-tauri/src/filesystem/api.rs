@@ -1,5 +1,6 @@
 use crate::filesystem::{objects::Entry, utils};
 use directories_next::{ProjectDirs, UserDirs};
+use fs_extra;
 use normpath::PathExt;
 use open;
 use std::{fs, path::PathBuf, time::SystemTime};
@@ -22,7 +23,6 @@ pub fn get_settings() -> Result<serde_json::Value, String> {
             let str = String::from(
                 "{\n\t\"showHidden\": false,\n\t\"deletePermanently\": false,\n\t\"theme\": \"default\",\n\t\"view\": \"grid\",\n\t\"gridItemSize\": 80\n}",
             );
-            let str = String::from("{\n\t\"showHidden\": false,\n\t\"deletePermanently\": false,\n\t\"theme\": \"default\"\n}");
             fs::write(settings_path, str.as_bytes()).unwrap();
             str
         };
@@ -327,6 +327,33 @@ pub fn remove_path(path: String, permanently: bool) -> Result<(), String> {
             Err(e) => return Err(e.to_string()),
             Ok(()) => Ok(()),
         }
+    }
+}
+
+#[tauri::command]
+pub fn copy_path(from: String, to: String) -> Result<(), String> {
+    let from_path_obj = PathBuf::from(&from);
+
+    // Check if the path exists
+    if !utils::check_path_exists(&from_path_obj) {
+        return Err(String::from("The given path doesn't exist"));
+    }
+
+    let to_path = PathBuf::from(&to);
+
+    // Check if the path exists
+    if !utils::check_path_exists(&to_path) {
+        match fs::create_dir_all(&to_path) {
+            Err(e) => return Err(e.to_string()),
+            Ok(()) => (),
+        }
+    }
+
+    let from_paths = vec![from_path_obj];
+    let options = fs_extra::dir::CopyOptions::new();
+    match fs_extra::copy_items(&from_paths, &to_path, &options) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
     }
 }
 
