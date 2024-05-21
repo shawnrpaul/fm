@@ -16,8 +16,12 @@ export interface EntryMetaData {
 
 export type ThemeTypes = "light" | "dark" | "default"
 
+export type ViewType = "grid" | "list"
+
 export interface AppSettings {
   showHidden: boolean
   deletePermanently: boolean
   theme: ThemeTypes
+  view: ViewType
+  gridItemSize: number
 }

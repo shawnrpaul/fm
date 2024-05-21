@@ -1,13 +1,16 @@
-import { For } from "solid-js";
-import { Entry } from "./types";
+import { For, createEffect, on } from "solid-js";
+import { AppSettings, Entry } from "./types";
 import { Folder, File, FileImage, FileAudio2, FileVideo } from "lucide-solid";
 import { SetStoreFunction } from "solid-js/store";
+import { Setter } from "solid-js";
 
 interface Props {
 	list: Entry[];
 	setList: SetStoreFunction<Entry[]>;
 	selected: (key: number | undefined) => boolean;
 	selectOrOpen: (item: Entry, index: number) => void;
+	setColumnCount: Setter<number>;
+	settings: AppSettings;
 }
 
 export default function ListView(props: Props) {
@@ -19,9 +22,22 @@ export default function ListView(props: Props) {
 		return <File />;
 	};
 
+	const recaulculateCount = () => {
+		console.count('column count')
+		const count = window.getComputedStyle(document.querySelector('.grid-view')!).gridTemplateColumns.split(' ').length;
+		props.setColumnCount(count)
+		console.log(count)
+	}
+
+	createEffect(on(() => props.settings.view, () => {
+		console.count('view')
+		if (props.settings.view === "grid")
+			recaulculateCount()
+	}))
+
 	return (
-		<section class="list-view">
-			<ul class="list-view-list">
+		<section>
+			<ul class={props.settings.view === "grid" ? "grid-view" : "list-view"}>
 				<For each={props.list}>
 					{(item, index) => (
 						<li
@@ -31,7 +47,7 @@ export default function ListView(props: Props) {
 							onClick={() => props.selectOrOpen(item, index())}
 						>
 							{getIcon(item)}
-							<span>{item.name}</span>
+							<div><span>{item.name}</span></div>
 						</li>
 					)}
 				</For>

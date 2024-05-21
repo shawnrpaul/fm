@@ -48,7 +48,7 @@ body {
   }
 }
 
-.list-view-list,
+.list-view,
 .user-dirs {
   list-style: none;
   padding: var(--size-1) var(--size-2);
@@ -68,6 +68,51 @@ body {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    &.selected {
+      background-color: var(--surface-3)
+    }
+  }
+}
+
+.grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--grid-item-size), 1fr));
+  list-style: none;
+  gap: var(--size-3);
+  padding: var(--size-3);
+  grid-auto-rows: 1fr;
+
+  font-size: 1rem;
+
+  & li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2);
+    border-radius: var(--radius-2);
+    padding: var(--size-00) var(--size-1);
+    align-items: center;
+
+    div {
+      display: flex;
+      text-align: center;
+      line-height: 1.15;
+
+      span {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        /* number of lines to show */
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        word-break: break-word;
+      }
+    }
+
+    & svg {
+      width: 3rem;
+      height: auto;
     }
 
     &.selected {
