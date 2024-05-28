@@ -3,8 +3,18 @@ use directories_next::{ProjectDirs, UserDirs};
 use fs_extra;
 use normpath::PathExt;
 use open;
-use std::{fs, path::PathBuf, time::SystemTime};
+use rust_search::SearchBuilder;
+use std::{
+    fs,
+    path::PathBuf,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    time::SystemTime,
+};
 use sysinfo::Disks;
+use tauri::{async_runtime::spawn_blocking, Runtime, State};
 use trash;
 
 #[tauri::command]
@@ -355,6 +365,61 @@ pub fn copy_path(from: String, to: String) -> Result<(), String> {
         Ok(_) => Ok(()),
         Err(e) => Err(e.to_string()),
     }
+}
+
+#[tauri::command]
+pub fn search_for<R: Runtime>(
+    window: tauri::Window<R>,
+    status: State<'_, Arc<AtomicBool>>,
+    path: String,
+    name: String,
+) -> Result<(), String> {
+    let state = status.inner().clone();
+    if state.load(Ordering::Relaxed) {
+        return Err(String::from("Search already running"));
+    }
+
+    let path_to_search = PathBuf::from(&path);
+
+    // Check if the path exists
+    if !utils::check_path_exists(&path_to_search) {
+        return Err(String::from("The given path doesn't exist"));
+    }
+
+    window.emit("search_begin", ());
+    state.store(true, Ordering::Relaxed);
+
+    let _ = spawn_blocking(move || {
+        let search = SearchBuilder::default()
+            .location(&path_to_search)
+            .search_input(name)
+            .hidden()
+            .ignore_case()
+            .build();
+
+        for res in search {
+            if !state.load(Ordering::Relaxed) {
+                break;
+            }
+            let path = PathBuf::from(res)
+                .normalize()
+                .unwrap()
+                .as_os_str()
+                .to_str()
+                .unwrap()
+                .to_string();
+            window.emit("seach_result", path);
+        }
+        window.emit("search_complete", ());
+        state.store(false, Ordering::Relaxed);
+    });
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn cancel_search(status: State<'_, Arc<AtomicBool>>) {
+    status.inner().clone().store(false, Ordering::Relaxed);
 }
 
 #[tauri::command]
