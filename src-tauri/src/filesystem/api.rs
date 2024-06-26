@@ -11,7 +11,7 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Arc,
     },
-    time::SystemTime,
+    time::{Instant, SystemTime},
 };
 use sysinfo::Disks;
 use tauri::{async_runtime::spawn_blocking, Runtime, State};
@@ -397,6 +397,8 @@ pub fn search_for<R: Runtime>(
             .ignore_case()
             .build();
 
+        let mut results: Vec<String> = Vec::new();
+        let mut start = Instant::now();
         for res in search {
             if !state.load(Ordering::Relaxed) {
                 break;
@@ -408,8 +410,14 @@ pub fn search_for<R: Runtime>(
                 .to_str()
                 .unwrap()
                 .to_string();
-            window.emit("seach_result", path);
+            results.push(path);
+            if start.elapsed().as_millis() >= 100 {
+                window.emit("seach_result", &results);
+                results.clear();
+                start = Instant::now();
+            }
         }
+        window.emit("seach_result", &results);
         window.emit("search_complete", ());
         state.store(false, Ordering::Relaxed);
     });
